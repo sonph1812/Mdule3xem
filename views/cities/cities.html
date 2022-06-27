@@ -1,0 +1,41 @@
+<main>
+    <!--    <img src="./public/jpg/test.jpg" alt="" srcset="" width="500px" height="300px">-->
+    <div class="container-fluid px-4">
+        <h1 class="mt-4">Cities</h1>
+
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-table me-1"></i>
+                DataTable Cities
+            </div>
+            <div class="card-header">
+                <a href="/city/create" class="d-inline-flex p-2 bd-highlight" style="text-decoration: none">
+                    <button type="button" class="btn btn-success mx-auto mb-2">Add city</button>
+                </a>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped" id="datatablesSimple" >
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Country</th>
+                        <th>Area</th>
+                        <th>Area</th>
+                        <th>Popular</th>
+                        <th>GDP</th>
+                        <th>Desciption </th>
+                        <th colspan="3">Action</th>
+
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {list-cities}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+<!--<script src="../../public/js/orders.js"></script>-->
