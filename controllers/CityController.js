@@ -1,5 +1,4 @@
 const {fs, mysql, query, qs, url, path, getLayout} = require("../config/controller")
-const ordersModel = require("../models/OrdersModel")
 const cityModel = require("../models/CityModel")
 
 class CityController {
@@ -11,36 +10,34 @@ class CityController {
     }
 
     async index(req, res) {
-        // try {
-        //     let cities = await cityModel.getCities();
-        //     console.log(cities)
-        // } catch (err) {
-        //     console.log(err.message);
-        // }
 
         if (req.method === "GET") {
             let html = '';
             const cities = await cityModel.getCities()
-            cities.forEach((city, index) => {
+            for (let i = 0; i < cities.length; i++) {
+                let city = cities[i];
+                let index = i;
                 try {
                     if (city) {
+                        let country = (await cityModel.getCountryById(city["countryId"]))[0];
                         html += '<tr>';
                         html += `<td>${index + 1}</td>`
                         html += `<td>${city["name"]}</td>`
-                        html += `<td>${city["countryId"]}</td>`
+                        html += `<td>${country["name"]}</td>`
                         html += `<td>${city["area"]}</td>`
                         html += `<td>${city["popular"]}</td>`
                         html += `<td>${city["GDP"]}</td>`
                         html += `<td>${city["desciption"]}</td>`
                         html += `<td><a href="/city/detail?id=${city["Id"]}&index=${index}"><button class="btn btn-warning text-light">Detail</button></a></td>`
                         html += `<td><a href="/city/delete?id=${city["Id"]}&index=${index}"><button class="btn btn-danger">Delete</button></a></td>`
-                        html += `<td><a href="/citycity/update?id=${city["Id"]}&index=${index}"><button class="btn btn-primary">Update</button></a></td>`
+                        html += `<td><a href="/city/update?id=${city["Id"]}&index=${index}"><button class="btn btn-primary">Update</button></a></td>`
                         html += '</tr>';
                     }
                 } catch (err) {
                     console.log(err.message);
                 }
-            });
+
+            }
             let data = "";
             try {
                 data = fs.readFileSync('./views/cities/cities.html', 'utf-8');
@@ -99,7 +96,6 @@ class CityController {
             req.on('end', async () => {
                 let city = qs.parse(data);
 
-                console.log(city);
                 // return res.end("da nhan dc city");
 
                 try {
@@ -129,8 +125,6 @@ class CityController {
             const city = (await cityModel.getCityById(id))[0];
             const country = (await cityModel.getCountryById(city["countryId"]))[0]
 
-            console.log(city)
-            console.log(country["name"])
             city.country = country["name"];
 
             let detailApi = JSON.stringify(city)
@@ -184,84 +178,34 @@ class CityController {
         let index = url.parse(req.url, true).query.index;
         let id = url.parse(req.url, true).query.id;
         if (req.method === "GET") {
-            let html = '';
-            let cNameOption = "";
-            let productsList = "";
-            try {
-                // get order
-                let order = (await ordersModel.getOneOrder(id))[0];
-                // convert date format to show
-                let date = new Date(order["orderDate"]).toJSON()
-                date = date.slice(0, date.length - 14)
-                let customersName = await ordersModel.getCustomerName();
-                // get {customer-name}
-                customersName.forEach((customer) => {
-                    if (customer["customerName"] === order["customerName"]) {
-                        cNameOption += `<option value="${customer["customerID"]}" selected>
-                                ${customer["customerName"]}
-                                </option>`
-                    } else {
-                        cNameOption += `<option value="${customer["customerID"]}">
-                                ${customer["customerName"]}
-                                </option>`
-                    }
-                })
+            let country = [];
+            const city = (await cityModel.getCityById(id))[0];
 
-                // get product list
-                let ProductList = await ordersModel.getProductList(order["orderID"]);
-
-                // get all product list
-                let allProductList = await apiModel.getAllProducts();
-                allProductList = JSON.parse(allProductList)
-
-                function getProductListOptions(allProductList, productName) {
-                    let html = "";
-                    allProductList.forEach(product => {
-                        if (product["productName"] === productName) {
-                            html += `<option value="${product["productId"]}" selected>${product["productName"]}</option>`
-                        } else {
-                            html += `<option value="${product["productId"]}">${product["productName"]}</option>`
-                        }
-                    })
-                    return html;
+            fs.readFile('./views/cities/update.html', 'utf-8', async function (err, data) {
+                if (err) {
+                    console.log(err);
                 }
-
-                ProductList.forEach((product, index) => {
-
-                    productsList += `<div class="row">
-                    <div class="col">
-                    <label for="products-list" class="form-label">Choose product ${index + 1}</label>
-                    <span class="products-list text-danger"><i class="fa fa-times-circle" aria-hidden="true"></i></span>
-                    <select name="product-id-${index}" class="form-select" id="products-list" required>
-                        ${getProductListOptions(allProductList, product["productName"])}
-                    </select>
-                </div>
-                <div class="col">
-                        <label for="quantity-${index}" class="form-label">Quantity product  ${index + 1}</label>
-                    <input type="number" class="form-control" id="quantity-${index}" name="quantity-${index}" placeholder="Quantity"  value = ${product["orderQuantity"]} required>
-                </div>
-                </div>`
+                let html = "";
+                let countryOption = "";
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                country = await cityModel.getCountry();
+                country.forEach((country) => {
+                    countryOption += `<option value="${country["Id"]}"  {${country["Id"]}-selected} >${country["name"]}</option>`
                 })
+                countryOption = countryOption.replace(`{${city["countryId"]}-selected}`, "selected");
 
-                fs.readFile('./views/orders/update.html', 'utf-8', function (err, data) {
-                    res.writeHead(200, {'Content-Type': 'text/html'});
-                    data = data.replace(/{order-date}/gim, date);
-                    data = data.replace(/{customer-name}/gim, cNameOption);
-                    data = data.replace('{product-list}', productsList);
-                    data = data.replace(/{order-id}/gim, id);
-                    data = data.replace(/{order-index}/gim, index);
-                    // xử lý selected
-                    html = OrdersController.getLayout(req, res).replace('{content}', data);
-                    res.write(html);
-                    return res.end();
-                });
+                data = data.replace('{country-name}', countryOption);
+                data = data.replace('{name-city}', city["name"]);
+                data = data.replace('{area-city}', city["area"]);
+                data = data.replace('{popular-city}', city["popular"]);
+                data = data.replace('{gdp-city}', city["GDP"]);
+                data = data.replace('{descriptipn-city}', city["desciption"]);
 
-            } catch (err) {
-                html = "Load data fail!";
-                console.log(err.message);
+                html = getLayout.getLayout(req, res).replace('{content}', data);
                 res.write(html);
                 return res.end();
-            }
+            });
+
         } else {
             let data = "";
             req.on('data', chunk => {
