@@ -10,7 +10,6 @@ const cookie = require("cookie");
 const server = http.createServer((req, res) => {
 
 
-    // chia router
     let parseUrl = url.parse(req.url, true);
     let path = parseUrl.pathname;
     let trimPath = path.replace(/^\/+|\/+$/g, '');

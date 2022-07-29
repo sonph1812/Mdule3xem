@@ -8,17 +8,12 @@ class Database {
         return mysql.createConnection({
             host: "localhost",
             user: "root",
-            password: "mysql123456",
-            database: "products_manager",
+            password: "123456",
+            database: "local_guide",
             charset: "utf8_general_ci"
         });
 
     }
-    // query() {
-    //     // node native promisify
-    //     const connection = this.connect();
-    //     return util.promisify(connection.query).bind(connection);
-    // }
 
 }
 
